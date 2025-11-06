@@ -10,22 +10,28 @@ import CoreData
 
 @main
 struct BirreDaManicomioApp: App {
-    @StateObject private var cart = CartViewModel()
+    @StateObject var cart = CartViewModel()
+    @StateObject var homeVM = HomeViewModel()
+    
     @State private var showSplash = true
-
+    
     var body: some Scene {
         WindowGroup {
-            Group {
+            ZStack {
+                HomeView()
+                    .environmentObject(cart)
+                    .opacity(showSplash ? 0 : 1)
+                
                 if showSplash {
-                    SplashView()
-                        .onAppear {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                withAnimation { showSplash = false }
+                    SplashView(homeVM: homeVM)
+                        .transition(.opacity)
+                        .onChange(of: homeVM.isLoading) { loading in
+                            if loading == false {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                                    withAnimation { showSplash = false }
+                                }
                             }
                         }
-                } else {
-                    HomeView()
-                        .environmentObject(cart)
                 }
             }
         }

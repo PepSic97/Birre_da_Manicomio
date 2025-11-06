@@ -8,38 +8,70 @@
 import Foundation
 import SwiftUI
 import Combine
+import SwiftSoup
 
 @MainActor
-final class HomeViewModel: ObservableObject {
-    @Published var categories: [Category] = []
+class HomeViewModel: ObservableObject {
+    @Published var isLoading = true
     @Published var latest: [Product] = []
     @Published var recommended: [Product] = []
 
-    func load() async {
-        async let _ = await fetchCategories()
-        async let _ = await fetchLatest()
+    // ✅ Archivio per tipo, già pronto per la Home
+    @Published var productsByType: [Int: [Product]] = [:]
+
+    // ✅ MOCK aggiornato
+    let latestMock: [Product] = [
+        Product(id: 1,
+                name: "ALHAMBRA 1925",
+                description: nil,
+                short_description: nil,
+                images: [ProductImage(src: "https://www.birredamanicomio.com/wp-content/uploads/ALHAMBRA-1925-OK-324x324.png")],
+                price_html: "5,50 €",
+                beerType: 0),
+        
+        Product(id: 2,
+                name: "ALHAMBRA RESERVA",
+                description: nil,
+                short_description: nil,
+                images: [ProductImage(src: "https://www.birredamanicomio.com/wp-content/uploads/ALHAMBRA-RESERVA-OK-324x324.jpg")],
+                price_html: "6,50 €",
+                beerType: 0),
+        
+        Product(id: 3,
+                name: "ANTIKORPO BLACK",
+                description: nil,
+                short_description: nil,
+                images: [ProductImage(src: "https://www.birredamanicomio.com/wp-content/uploads/antikorpo-black-324x324.jpg")],
+                price_html: "7,00 €",
+                beerType: 4)
+    ]
+
+    let recommendedMock: [Product] = []
+
+
+    // MARK: - LOAD
+    func loadFromCacheOrAPI() async {
+        isLoading = true
+        
+        try? await Task.sleep(nanoseconds: 500_000_000)
+        
+        latest = latestMock
+        recommended = recommendedMock
+        
+        buildProductsByType()
+
+        isLoading = false
     }
 
-    private func fetchCategories() async {
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            APIService.shared.fetchCategories { [weak self] result in
-                if case let .success(list) = result {
-                    self?.categories = list
-                }
-                continuation.resume()
-            }
-        }
-    }
+    // MARK: - BUILD TYPE MAP
+    private func buildProductsByType() {
+        var dict: [Int: [Product]] = [:]
 
-    private func fetchLatest() async {
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            APIService.shared.fetchProducts(perPage: 12) { [weak self] result in
-                if case let .success(list) = result {
-                    self?.latest = list
-                    self?.recommended = Array(list.prefix(8))
-                }
-                continuation.resume()
-            }
+        for product in latest {
+            guard let type = product.beerType else { continue }
+            dict[type, default: []].append(product)
         }
+
+        productsByType = dict
     }
 }

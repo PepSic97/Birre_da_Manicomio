@@ -8,7 +8,7 @@
 import Foundation
 
 struct BeerType: Identifiable {
-    let id = UUID()
+    let id: Int // 0-4
     let name: String
     let imageName: String
 }

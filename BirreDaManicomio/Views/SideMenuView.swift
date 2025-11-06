@@ -9,33 +9,37 @@ import SwiftUI
 
 struct SideMenuView: View {
     @Binding var showMenu: Bool
+    @EnvironmentObject var homeVM: HomeViewModel
     let width: CGFloat = 260
 
-    let menuItems: [String] = [
+    let menu: [String] = [
         "Birre Artigianali",
-        "Birre Barrel",
-        "Birre Biologiche",
-        "Birre Bionde Leggere",
-        "Birre da Manicomio",
-        "Birre Lambic e fruttate",
-        "Birre non filtrate",
-        "Birre Scure Strong"
+        "Kit Degustazione",
+        "Discovery Box",
+        "Abbonamenti",
+        "Bicchieri",
+        "Regali"
     ]
 
     var body: some View {
         ZStack(alignment: .leading) {
-
-            // Background trasparente
             if showMenu {
                 Color.black.opacity(0.35)
                     .ignoresSafeArea()
                     .onTapGesture { withAnimation { showMenu = false } }
             }
 
-            HStack(spacing: 0) {
+            HStack {
                 VStack(alignment: .leading, spacing: 22) {
-                    ForEach(menuItems, id: \.self) { item in
-                        NavigationLink(destination: CategoryProductsView(categoryName: item)) {
+                    ForEach(menu, id: \.self) { item in
+                        let products = itemsForMenu(item)
+
+                        NavigationLink(
+                            destination: ProductListView(
+                                title: item,
+                                items: products
+                            )
+                        ) {
                             Text(item)
                                 .font(.headline)
                                 .foregroundColor(.primary)
@@ -52,6 +56,17 @@ struct SideMenuView: View {
                 Spacer()
             }
             .animation(.easeOut(duration: 0.25), value: showMenu)
+        }
+    }
+
+    private func itemsForMenu(_ item: String) -> [Product] {
+        switch item {
+        case "Birre Artigianali":
+            return homeVM.latest
+        case "Regali":
+            return homeVM.recommended
+        default:
+            return []
         }
     }
 }

@@ -6,90 +6,107 @@
 //
 
 import Foundation
+import SwiftSoup
 
 final class APIService {
     static let shared = APIService()
     private init() {}
-    
     private let baseURL = "https://www.birredamanicomio.com/wp-json/wc/v3"
     private let key    = "ck_4b36a2556eaa6314f4f69ad0336b8e8db9f5a06e"
     private let secret = "cs_25d0092992d9f9c3d37a19566dbb8a2701e15b53"
     
-    private var authHeader: String {
-        let loginString = "\(key):\(secret)"
-        let loginData = loginString.data(using: .utf8)!
-        return "Basic \(loginData.base64EncodedString())"
+    private var authParams: [URLQueryItem] {
+        [
+            .init(name: "consumer_key", value: key),
+            .init(name: "consumer_secret", value: secret)
+        ]
     }
     
-    
+    // MARK: - PRODUCTS
     func fetchProducts(categoryID: Int? = nil,
                        perPage: Int = 12,
                        completion: @escaping (Result<[Product], Error>) -> Void) {
         
-        var components = URLComponents(string: "\(baseURL)/products")!
-        components.queryItems = [
-            URLQueryItem(name: "status", value: "publish"),
-            URLQueryItem(name: "orderby", value: "date"),
-            URLQueryItem(name: "order", value: "desc"),
-            URLQueryItem(name: "per_page", value: "\(perPage)")
-        ]
-        
-        if let cat = categoryID {
-            components.queryItems?.append(URLQueryItem(name: "category", value: "\(cat)"))
+        var url = URLComponents(string: "\(baseURL)/products")!
+        var items = authParams
+        items.append(contentsOf: [
+            .init(name: "status", value: "publish"),
+            .init(name: "orderby", value: "date"),
+            .init(name: "order", value: "desc"),
+            .init(name: "per_page", value: "\(perPage)")
+        ])
+        if let cid = categoryID {
+            items.append(.init(name: "category", value: "\(cid)"))
         }
+        url.queryItems = items
         
-        var request = URLRequest(url: components.url!)
+        var request = URLRequest(url: url.url!)
         request.httpMethod = "GET"
-        request.addValue(authHeader, forHTTPHeaderField: "Authorization")
         
-        URLSession.shared.dataTask(with: request) { data, _, error in
-            
-            if let error = error {
-                completion(.failure(error))
+        URLSession.shared.dataTask(with: request) { data, _, err in
+            if let err = err {
+                DispatchQueue.main.async { completion(.failure(err)) }
                 return
             }
-            
-            guard let data else {
-                completion(.success([]))
+            guard let data = data else {
+                DispatchQueue.main.async { completion(.success([])) }
                 return
             }
             
             do {
-                let decoded = try JSONDecoder().decode([Product].self, from: data)
-                completion(.success(decoded))
+                // 🔹 Prima proviamo array diretto
+                if let array = try? JSONDecoder().decode([Product].self, from: data) {
+                    DispatchQueue.main.async { completion(.success(array)) }
+                    return
+                }
+                
+                // 🔹 Poi proviamo dizionario contenente array (es. {"products": [...]})
+                if let dict = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let arrData = try? JSONSerialization.data(withJSONObject: dict["products"] ?? []) {
+                    let decoded = try JSONDecoder().decode([Product].self, from: arrData)
+                    DispatchQueue.main.async { completion(.success(decoded)) }
+                    return
+                }
+                
+                DispatchQueue.main.async { completion(.success([])) }
             } catch {
-                completion(.failure(error))
+                DispatchQueue.main.async { completion(.failure(error)) }
             }
             
         }.resume()
     }
     
-    
+    // MARK: - CATEGORIES
     func fetchCategories(completion: @escaping (Result<[Category], Error>) -> Void) {
-        let urlStr = "\(baseURL)/products/categories?consumer_key=\(key)&consumer_secret=\(secret)&per_page=50"
+        var url = URLComponents(string: "\(baseURL)/products/categories")!
+        url.queryItems = authParams + [.init(name: "per_page", value: "100")]
         
-        guard let url = URL(string: urlStr) else {
-            completion(.success([]))
-            return
-        }
-        
-        URLSession.shared.dataTask(with: url) { data, _, error in
-            
-            if let error = error {
-                completion(.failure(error))
+        URLSession.shared.dataTask(with: url.url!) { data, _, err in
+            if let err = err {
+                DispatchQueue.main.async { completion(.failure(err)) }
                 return
             }
-            
-            guard let data else {
-                completion(.success([]))
+            guard let data = data else {
+                DispatchQueue.main.async { completion(.success([])) }
                 return
             }
             
             do {
-                let decoded = try JSONDecoder().decode([Category].self, from: data)
-                completion(.success(decoded))
+                if let array = try? JSONDecoder().decode([Category].self, from: data) {
+                    DispatchQueue.main.async { completion(.success(array)) }
+                    return
+                }
+                
+                if let dict = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let arrData = try? JSONSerialization.data(withJSONObject: dict["categories"] ?? []) {
+                    let decoded = try JSONDecoder().decode([Category].self, from: arrData)
+                    DispatchQueue.main.async { completion(.success(decoded)) }
+                    return
+                }
+                
+                DispatchQueue.main.async { completion(.success([])) }
             } catch {
-                completion(.failure(error))
+                DispatchQueue.main.async { completion(.failure(error)) }
             }
             
         }.resume()

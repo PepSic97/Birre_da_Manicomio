@@ -17,14 +17,15 @@ struct Product: Identifiable, Codable {
     let description: String?
     let short_description: String?
     let images: [ProductImage]?
-    let price_html: String?    // <- WooCommerce sometimes returns string, we keep it as String
+    let price_html: String?
+    let beerType: Int? // Cambiato da String a Int
 
     var decodedName: String {
-        name.decodedHTML
+        name
     }
 
     var displayPrice: String {
-        (price_html ?? "N/D").decodedHTML
+        price_html ?? "N/D"
     }
 
     var firstImageURL: URL? {
