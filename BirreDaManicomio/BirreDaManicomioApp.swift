@@ -10,12 +10,24 @@ import CoreData
 
 @main
 struct BirreDaManicomioApp: App {
-    let persistenceController = PersistenceController.shared
+    @StateObject private var cart = CartViewModel()
+    @State private var showSplash = true
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            Group {
+                if showSplash {
+                    SplashView()
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                withAnimation { showSplash = false }
+                            }
+                        }
+                } else {
+                    HomeView()
+                        .environmentObject(cart)
+                }
+            }
         }
     }
 }

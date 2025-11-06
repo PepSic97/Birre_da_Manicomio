@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		F80FAE652EBBEF0200497936 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = F80FAE642EBBEF0200497936 /* SwiftSoup */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		F80FAE062EBBE9E600497936 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F80FAE652EBBEF0200497936 /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = BirreDaManicomio;
 			packageProductDependencies = (
+				F80FAE642EBBEF0200497936 /* SwiftSoup */,
 			);
 			productName = BirreDaManicomio;
 			productReference = F80FADF32EBBE9E200497936 /* BirreDaManicomio.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = F80FADEA2EBBE9E200497936;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F80FAE632EBBEEBF00497936 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F80FADF42EBBE9E200497936 /* Products */;
 			projectDirPath = "";
@@ -578,6 +587,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F80FAE632EBBEEBF00497936 /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/scinfu/SwiftSoup";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.11.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F80FAE642EBBEF0200497936 /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F80FAE632EBBEEBF00497936 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = F80FADEB2EBBE9E200497936 /* Project object */;
 }
