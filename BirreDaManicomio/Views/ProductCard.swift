@@ -25,7 +25,7 @@ struct ProductCard: View {
                 .font(.subheadline)
                 .foregroundColor(Color("BrandYellow"))
         }
-        .frame(width: 160)
+        .frame(width: 140, height: 160)
         .padding()
         .background(Color.white)
         .cornerRadius(14)

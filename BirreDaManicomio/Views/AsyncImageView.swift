@@ -19,18 +19,32 @@ struct AsyncImageView: View {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let img):
-                        img.resizable().scaledToFill()
+                        successImg(img: img)
                     case .empty:
                         ProgressView()
                     default:
-                        Image(systemName: "photo")
-                            .resizable()
-                            .scaledToFit()
-                            .padding(20)
+                        defaultImg()
                     }
                 }
             }
         }
         .clipped()
+    }
+}
+
+extension AsyncImageView {
+    @ViewBuilder
+    private func successImg(img: Image) -> some View {
+        img
+            .resizable()
+            .scaledToFill()
+    }
+    
+    @ViewBuilder
+    private func defaultImg() -> some View {
+        Image(systemName: "photo")
+            .resizable()
+            .scaledToFit()
+            .padding(20)
     }
 }

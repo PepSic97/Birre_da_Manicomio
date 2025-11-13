@@ -14,7 +14,7 @@ struct SplashView: View {
     @State private var currentMessage = ""
     @State private var messageIndex = 0
 
-    @State private var timer: Timer?
+    @State private var messageTimer: Timer?
     @State private var progressTimer: Timer?
 
     let messages = [
@@ -53,43 +53,60 @@ struct SplashView: View {
             }
         }
         .onAppear {
-            startMessagesLoop()
-            startProgressSimulation()
-            Task { await loadDataSafely() }
+            currentMessage = messages.first ?? ""
+            startMessageCycle()
+            startProgressAnimation()
+            mockLoading()
         }
         .onDisappear {
-            timer?.invalidate()
+            messageTimer?.invalidate()
             progressTimer?.invalidate()
         }
     }
 
-    // MARK: - Funzioni
-
-    private func startMessagesLoop() {
-        timer = Timer.scheduledTimer(withTimeInterval: 0.7, repeats: true) { _ in
-            // Aggiorniamo lo stato in modo sicuro usando il main thread
+    // MARK: - Ciclo messaggi
+    private func startMessageCycle() {
+        messageTimer = Timer.scheduledTimer(withTimeInterval: 0.7, repeats: true) { timer in
             DispatchQueue.main.async {
-                messageIndex = (messageIndex + 1) % messages.count
+                messageIndex += 1
+
+                if messageIndex >= messages.count {
+                    timer.invalidate()
+                    finishSplash()
+                    return
+                }
+
                 currentMessage = messages[messageIndex]
             }
         }
     }
 
-    private func startProgressSimulation() {
-        progressTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { t in
+    private func startProgressAnimation() {
+        let totalSteps = messages.count
+        let increment = 1.0 / CGFloat(totalSteps)
+
+        progressTimer = Timer.scheduledTimer(withTimeInterval: 0.7, repeats: true) { timer in
             DispatchQueue.main.async {
-                if progress < 0.9 { progress += 0.03 }
-                if !homeVM.isLoading { t.invalidate() }
+                progress += increment
+
+                if progress >= 1.0 {
+                    timer.invalidate()
+                }
             }
         }
     }
 
-    private func loadDataSafely() async {
-        // Caricamento dati senza modificare direttamente lo stato durante il render
-        await homeVM.loadFromCacheOrAPI()
-        DispatchQueue.main.async {
-            withAnimation(.easeInOut(duration: 0.6)) {
-                progress = 1.0
+    private func mockLoading() {
+        Task {
+            try? await Task.sleep(nanoseconds: UInt64(messages.count) * 700_000_000)
+            await MainActor.run { homeVM.isLoading = false }
+        }
+    }
+
+    private func finishSplash() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            withAnimation(.easeInOut(duration: 0.5)) {
+                homeVM.isLoading = false
             }
         }
     }

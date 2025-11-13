@@ -12,18 +12,12 @@ struct HomeView: View {
     @EnvironmentObject var cart: CartViewModel
     @State private var showMenu = false
     @State private var showCart = false
-
-    let beerTypes = [
-        BeerType(id: 0, name: "BIONDA",   imageName: "beer_bionda"),
-        BeerType(id: 1, name: "BLANCHE", imageName: "beer_bianca"),
-        BeerType(id: 2, name: "FRUTTATA", imageName: "beer_fruttata"),
-        BeerType(id: 3, name: "AMBRATA",  imageName: "beer_ambrata"),
-        BeerType(id: 4, name: "SCURA",    imageName: "beer_scura")
-    ]
-
+ 
+    
     var body: some View {
         NavigationStack {
             ZStack {
+                Color("BrandYellow").ignoresSafeArea()
                 if vm.isLoading {
                     VStack {
                         ProgressView()
@@ -33,21 +27,19 @@ struct HomeView: View {
                 } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 20) {
-
-                            // MARK: - CHE BIRRA CERCHI?
                             Text("Che birra cerchi?")
                                 .font(.title2.bold())
                                 .padding(.horizontal)
-
+                            
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 14) {
-                                    ForEach(beerTypes) { type in
+                                    ForEach(vm.beerTypes) { type in
                                         let items = vm.productsByType[type.id] ?? []
-
+                                        
                                         NavigationLink(
                                             destination: ProductListView(
                                                 title: type.name,
-                                                items: items
+                                                products: items
                                             )
                                         ) {
                                             VStack {
@@ -55,7 +47,7 @@ struct HomeView: View {
                                                     .resizable()
                                                     .scaledToFit()
                                                     .frame(height: 70)
-
+                                                
                                                 Text(type.name)
                                                     .font(.callout)
                                             }
@@ -65,9 +57,7 @@ struct HomeView: View {
                                 }
                                 .padding(.horizontal)
                             }
-
-
-                            // MARK: - ULTIMI ARRIVI
+                            
                             SectionTitle("Ultimi arrivi")
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 18) {
@@ -83,8 +73,7 @@ struct HomeView: View {
                                 }
                                 .padding(.horizontal)
                             }
-
-                            // MARK: - CONSIGLIATE
+                            
                             SectionTitle("Birre consigliate")
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 18) {
@@ -100,18 +89,18 @@ struct HomeView: View {
                                 }
                                 .padding(.horizontal)
                             }
-
+                            
                             Spacer(minLength: 80)
                         }
                     }
                 }
-
+                
                 if showMenu {
                     SideMenuView(showMenu: $showMenu)
                         .environmentObject(vm)
                 }
             }
-
+            
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
@@ -145,12 +134,11 @@ struct HomeView: View {
     }
 }
 
-// MARK: - Helpers
 
 private struct SectionTitle: View {
     let text: String
     init(_ t: String) { self.text = t }
-
+    
     var body: some View {
         Text(text)
             .font(.title3.bold())
@@ -170,7 +158,6 @@ struct PlaceholderCard: View {
                 .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color.white.opacity(0.8))
         .cornerRadius(14)
     }
 }

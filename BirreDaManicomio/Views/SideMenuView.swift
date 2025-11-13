@@ -12,17 +12,9 @@ struct SideMenuView: View {
     @EnvironmentObject var homeVM: HomeViewModel
     let width: CGFloat = 260
 
-    let menu: [String] = [
-        "Birre Artigianali",
-        "Kit Degustazione",
-        "Discovery Box",
-        "Abbonamenti",
-        "Bicchieri",
-        "Regali"
-    ]
-
     var body: some View {
         ZStack(alignment: .leading) {
+
             if showMenu {
                 Color.black.opacity(0.35)
                     .ignoresSafeArea()
@@ -31,14 +23,9 @@ struct SideMenuView: View {
 
             HStack {
                 VStack(alignment: .leading, spacing: 22) {
-                    ForEach(menu, id: \.self) { item in
-                        let products = itemsForMenu(item)
-
+                    ForEach(homeVM.menu, id: \.self) { item in
                         NavigationLink(
-                            destination: ProductListView(
-                                title: item,
-                                items: products
-                            )
+                            destination: destinationForItem(item)
                         ) {
                             Text(item)
                                 .font(.headline)
@@ -59,14 +46,18 @@ struct SideMenuView: View {
         }
     }
 
-    private func itemsForMenu(_ item: String) -> [Product] {
+    @ViewBuilder
+    private func destinationForItem(_ item: String) -> some View {
         switch item {
         case "Birre Artigianali":
-            return homeVM.latest
+            BeerTypesListView()
         case "Regali":
-            return homeVM.recommended
+            GiftListView()
         default:
-            return []
+            ProductListView(
+                title: item,
+                products: homeVM.latest
+            )
         }
     }
 }
